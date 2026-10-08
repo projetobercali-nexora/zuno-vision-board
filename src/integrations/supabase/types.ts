@@ -14,16 +14,310 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contactos: {
+        Row: {
+          criado_em: string
+          etiquetas: string[]
+          id: string
+          nome: string | null
+          organizacao_id: string
+          origem: string | null
+          telefone: string
+        }
+        Insert: {
+          criado_em?: string
+          etiquetas?: string[]
+          id?: string
+          nome?: string | null
+          organizacao_id: string
+          origem?: string | null
+          telefone: string
+        }
+        Update: {
+          criado_em?: string
+          etiquetas?: string[]
+          id?: string
+          nome?: string | null
+          organizacao_id?: string
+          origem?: string | null
+          telefone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contactos_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversas: {
+        Row: {
+          contacto_id: string
+          criado_em: string
+          estado: Database["public"]["Enums"]["estado_conversa"]
+          estagio_id: string | null
+          ia_ativa: boolean
+          id: string
+          organizacao_id: string
+          ultima_mensagem_em: string | null
+        }
+        Insert: {
+          contacto_id: string
+          criado_em?: string
+          estado?: Database["public"]["Enums"]["estado_conversa"]
+          estagio_id?: string | null
+          ia_ativa?: boolean
+          id?: string
+          organizacao_id: string
+          ultima_mensagem_em?: string | null
+        }
+        Update: {
+          contacto_id?: string
+          criado_em?: string
+          estado?: Database["public"]["Enums"]["estado_conversa"]
+          estagio_id?: string | null
+          ia_ativa?: boolean
+          id?: string
+          organizacao_id?: string
+          ultima_mensagem_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversas_contacto_id_fkey"
+            columns: ["contacto_id"]
+            isOneToOne: false
+            referencedRelation: "contactos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversas_estagio_id_fkey"
+            columns: ["estagio_id"]
+            isOneToOne: false
+            referencedRelation: "estagios_funil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversas_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      decisoes_jev: {
+        Row: {
+          conversa_id: string
+          criado_em: string
+          estagio: string | null
+          id: string
+          jogada: Database["public"]["Enums"]["jogada_jev"]
+          motivo: string | null
+          organizacao_id: string
+          progresso: number
+        }
+        Insert: {
+          conversa_id: string
+          criado_em?: string
+          estagio?: string | null
+          id?: string
+          jogada: Database["public"]["Enums"]["jogada_jev"]
+          motivo?: string | null
+          organizacao_id: string
+          progresso?: number
+        }
+        Update: {
+          conversa_id?: string
+          criado_em?: string
+          estagio?: string | null
+          id?: string
+          jogada?: Database["public"]["Enums"]["jogada_jev"]
+          motivo?: string | null
+          organizacao_id?: string
+          progresso?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decisoes_jev_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisoes_jev_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estagios_funil: {
+        Row: {
+          cor: string | null
+          id: string
+          nome: string
+          ordem: number
+          organizacao_id: string
+        }
+        Insert: {
+          cor?: string | null
+          id?: string
+          nome: string
+          ordem?: number
+          organizacao_id: string
+        }
+        Update: {
+          cor?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+          organizacao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estagios_funil_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mensagens: {
+        Row: {
+          conversa_id: string
+          criado_em: string
+          id: string
+          organizacao_id: string
+          remetente: Database["public"]["Enums"]["remetente_msg"]
+          texto: string
+        }
+        Insert: {
+          conversa_id: string
+          criado_em?: string
+          id?: string
+          organizacao_id: string
+          remetente: Database["public"]["Enums"]["remetente_msg"]
+          texto: string
+        }
+        Update: {
+          conversa_id?: string
+          criado_em?: string
+          id?: string
+          organizacao_id?: string
+          remetente?: Database["public"]["Enums"]["remetente_msg"]
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensagens_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mensagens_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizacoes: {
+        Row: {
+          criado_em: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      papeis_utilizador: {
+        Row: {
+          id: string
+          papel: Database["public"]["Enums"]["app_role"]
+          utilizador_id: string
+        }
+        Insert: {
+          id?: string
+          papel: Database["public"]["Enums"]["app_role"]
+          utilizador_id: string
+        }
+        Update: {
+          id?: string
+          papel?: Database["public"]["Enums"]["app_role"]
+          utilizador_id?: string
+        }
+        Relationships: []
+      }
+      perfis: {
+        Row: {
+          criado_em: string
+          id: string
+          nome: string | null
+          organizacao_id: string
+        }
+        Insert: {
+          criado_em?: string
+          id: string
+          nome?: string | null
+          organizacao_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          nome?: string | null
+          organizacao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      minha_organizacao: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "atendente"
+      estado_conversa: "aberta" | "fechada"
+      jogada_jev:
+        | "perguntar"
+        | "qualificar"
+        | "apresentar"
+        | "objecao"
+        | "fechar"
+      remetente_msg: "cliente" | "agente" | "humano"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +444,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "atendente"],
+      estado_conversa: ["aberta", "fechada"],
+      jogada_jev: [
+        "perguntar",
+        "qualificar",
+        "apresentar",
+        "objecao",
+        "fechar",
+      ],
+      remetente_msg: ["cliente", "agente", "humano"],
+    },
   },
 } as const
