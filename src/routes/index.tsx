@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Zuno — CRM de WhatsApp com IA" },
+      { title: "Zuno Vision Board" },
       { name: "description", content: "O Zuno organiza as suas conversas de WhatsApp e ajuda a vender mais." },
-      { property: "og:title", content: "Zuno — CRM de WhatsApp com IA" },
+      { property: "og:title", content: "Zuno Vision Board" },
       { property: "og:description", content: "O Zuno organiza as suas conversas de WhatsApp e ajuda a vender mais." },
+      { property: "og:url", content: "https://zuno-vision-board.lovable.app/" },
+      { property: "og:image", content: "https://zuno-vision-board.lovable.app/og-image.png" },
+      { name: "twitter:image", content: "https://zuno-vision-board.lovable.app/og-image.png" },
     ],
   }),
   component: Index,
