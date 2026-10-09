@@ -6,4 +6,5 @@
 - [x] Funil kanban com arrastar
 - [x] Contactos com pesquisa, filtro, adicionar
 - [x] Definições: "Gerar dados de teste"
-- [ ] Fases seguintes: WhatsApp, IA, motor Jev
+- [x] Entrada WhatsApp (UazAPI): receber e guardar em webhook_logs
+- [ ] Fases seguintes: interpretar mensagens, IA, respostas, motor Jev

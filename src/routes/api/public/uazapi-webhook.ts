@@ -12,6 +12,7 @@ function seguroIgual(a: string, b: string) {
 export const Route = createFileRoute("/api/public/uazapi-webhook")({
   server: {
     handlers: {
+      GET: async () => new Response("Método não permitido", { status: 405 }),
       POST: async ({ request }) => {
         const esperado = process.env["WEBHOOK_SEGREDO"] ?? "";
         const segredo = new URL(request.url).searchParams.get("segredo") ?? "";
