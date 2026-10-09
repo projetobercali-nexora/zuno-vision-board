@@ -294,6 +294,33 @@ export type Database = {
           },
         ]
       }
+      webhook_logs: {
+        Row: {
+          cabecalhos: Json | null
+          corpo: Json | null
+          erro: string | null
+          id: string
+          processado: boolean
+          recebido_em: string
+        }
+        Insert: {
+          cabecalhos?: Json | null
+          corpo?: Json | null
+          erro?: string | null
+          id?: string
+          processado?: boolean
+          recebido_em?: string
+        }
+        Update: {
+          cabecalhos?: Json | null
+          corpo?: Json | null
+          erro?: string | null
+          id?: string
+          processado?: boolean
+          recebido_em?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
