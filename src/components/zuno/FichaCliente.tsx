@@ -83,7 +83,7 @@ export function FichaCliente({ conversa }: { conversa: ConversaComContacto }) {
 
       <div>
         <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Estágio atual</p>
-        <Select value={conversa.estagio_id ?? undefined} onValueChange={(v) => mudarEstagio.mutate(v)}>
+        <Select value={conversa.estagio_id ?? ""} onValueChange={(v) => mudarEstagio.mutate(v)}>
           <SelectTrigger><SelectValue placeholder="Escolher estágio" /></SelectTrigger>
           <SelectContent>
             {estagios?.map((e) => <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>)}
