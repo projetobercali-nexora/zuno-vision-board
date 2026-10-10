@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      config_jev: {
+        Row: {
+          ativo: boolean
+          id: number
+          instrucoes: string
+          modelo: string
+        }
+        Insert: {
+          ativo?: boolean
+          id?: number
+          instrucoes: string
+          modelo?: string
+        }
+        Update: {
+          ativo?: boolean
+          id?: number
+          instrucoes?: string
+          modelo?: string
+        }
+        Relationships: []
+      }
       contactos: {
         Row: {
           criado_em: string
@@ -113,9 +134,11 @@ export type Database = {
           criado_em: string
           estagio: string | null
           id: string
+          intencao_cliente: string | null
           jogada: Database["public"]["Enums"]["jogada_jev"]
           motivo: string | null
           organizacao_id: string
+          probabilidade_conversao: number | null
           progresso: number
         }
         Insert: {
@@ -123,9 +146,11 @@ export type Database = {
           criado_em?: string
           estagio?: string | null
           id?: string
+          intencao_cliente?: string | null
           jogada: Database["public"]["Enums"]["jogada_jev"]
           motivo?: string | null
           organizacao_id: string
+          probabilidade_conversao?: number | null
           progresso?: number
         }
         Update: {
@@ -133,9 +158,11 @@ export type Database = {
           criado_em?: string
           estagio?: string | null
           id?: string
+          intencao_cliente?: string | null
           jogada?: Database["public"]["Enums"]["jogada_jev"]
           motivo?: string | null
           organizacao_id?: string
+          probabilidade_conversao?: number | null
           progresso?: number
         }
         Relationships: [
@@ -187,30 +214,513 @@ export type Database = {
           },
         ]
       }
+      instancias_whatsapp: {
+        Row: {
+          criado_em: string
+          id: string
+          nome_instancia: string | null
+          numero: string
+          organizacao_id: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          nome_instancia?: string | null
+          numero: string
+          organizacao_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          nome_instancia?: string | null
+          numero?: string
+          organizacao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instancias_whatsapp_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jev_fila: {
+        Row: {
+          conversa_id: string
+          criado_em: string
+          id: number
+          organizacao_id: string
+          processado: boolean
+        }
+        Insert: {
+          conversa_id: string
+          criado_em?: string
+          id?: number
+          organizacao_id: string
+          processado?: boolean
+        }
+        Update: {
+          conversa_id?: string
+          criado_em?: string
+          id?: number
+          organizacao_id?: string
+          processado?: boolean
+        }
+        Relationships: []
+      }
+      jev_logs: {
+        Row: {
+          conversa_id: string | null
+          criado_em: string
+          detalhe: string | null
+          estado: string | null
+          id: number
+        }
+        Insert: {
+          conversa_id?: string | null
+          criado_em?: string
+          detalhe?: string | null
+          estado?: string | null
+          id?: number
+        }
+        Update: {
+          conversa_id?: string | null
+          criado_em?: string
+          detalhe?: string | null
+          estado?: string | null
+          id?: number
+        }
+        Relationships: []
+      }
+      kb_agente: {
+        Row: {
+          apresentacao: string | null
+          atualizado_em: string
+          despedida: string | null
+          funcao: string
+          mensagem_passar_humano: string
+          modo: string
+          nome: string
+          organizacao_id: string
+          pausa_max_seg: number
+          pausa_min_seg: number
+          personalidade: string | null
+          saudacao: string | null
+          tamanho_resposta: string
+          tom: string
+          usa_emojis: string
+          variante_idioma: string
+        }
+        Insert: {
+          apresentacao?: string | null
+          atualizado_em?: string
+          despedida?: string | null
+          funcao?: string
+          mensagem_passar_humano?: string
+          modo?: string
+          nome?: string
+          organizacao_id: string
+          pausa_max_seg?: number
+          pausa_min_seg?: number
+          personalidade?: string | null
+          saudacao?: string | null
+          tamanho_resposta?: string
+          tom?: string
+          usa_emojis?: string
+          variante_idioma?: string
+        }
+        Update: {
+          apresentacao?: string | null
+          atualizado_em?: string
+          despedida?: string | null
+          funcao?: string
+          mensagem_passar_humano?: string
+          modo?: string
+          nome?: string
+          organizacao_id?: string
+          pausa_max_seg?: number
+          pausa_min_seg?: number
+          personalidade?: string | null
+          saudacao?: string | null
+          tamanho_resposta?: string
+          tom?: string
+          usa_emojis?: string
+          variante_idioma?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_agente_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: true
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_estrategia: {
+        Row: {
+          id: string
+          instrucoes: string
+          jogada: string
+          organizacao_id: string
+        }
+        Insert: {
+          id?: string
+          instrucoes?: string
+          jogada: string
+          organizacao_id: string
+        }
+        Update: {
+          id?: string
+          instrucoes?: string
+          jogada?: string
+          organizacao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_estrategia_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_faq: {
+        Row: {
+          ativo: boolean
+          criado_em: string
+          id: string
+          organizacao_id: string
+          pergunta: string
+          resposta: string
+          tipo: string
+        }
+        Insert: {
+          ativo?: boolean
+          criado_em?: string
+          id?: string
+          organizacao_id: string
+          pergunta: string
+          resposta: string
+          tipo?: string
+        }
+        Update: {
+          ativo?: boolean
+          criado_em?: string
+          id?: string
+          organizacao_id?: string
+          pergunta?: string
+          resposta?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_faq_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_midias: {
+        Row: {
+          ativo: boolean
+          caminho_storage: string | null
+          criado_em: string
+          descricao: string | null
+          id: string
+          legenda: string | null
+          organizacao_id: string
+          produto_id: string | null
+          quando_enviar: string | null
+          tipo: string
+          titulo: string
+          url: string
+        }
+        Insert: {
+          ativo?: boolean
+          caminho_storage?: string | null
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          legenda?: string | null
+          organizacao_id: string
+          produto_id?: string | null
+          quando_enviar?: string | null
+          tipo: string
+          titulo: string
+          url: string
+        }
+        Update: {
+          ativo?: boolean
+          caminho_storage?: string | null
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          legenda?: string | null
+          organizacao_id?: string
+          produto_id?: string | null
+          quando_enviar?: string | null
+          tipo?: string
+          titulo?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_midias_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_midias_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "kb_produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_negocio: {
+        Row: {
+          atualizado_em: string
+          contactos: string | null
+          descricao: string | null
+          diferenciais: string | null
+          formas_pagamento: string | null
+          garantia_devolucoes: string | null
+          horario: string | null
+          localizacao: string | null
+          nome_empresa: string | null
+          o_que_vende: string | null
+          organizacao_id: string
+          outras_informacoes: string | null
+          politica_entrega: string | null
+          publico_alvo: string | null
+          zonas_entrega: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          contactos?: string | null
+          descricao?: string | null
+          diferenciais?: string | null
+          formas_pagamento?: string | null
+          garantia_devolucoes?: string | null
+          horario?: string | null
+          localizacao?: string | null
+          nome_empresa?: string | null
+          o_que_vende?: string | null
+          organizacao_id: string
+          outras_informacoes?: string | null
+          politica_entrega?: string | null
+          publico_alvo?: string | null
+          zonas_entrega?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          contactos?: string | null
+          descricao?: string | null
+          diferenciais?: string | null
+          formas_pagamento?: string | null
+          garantia_devolucoes?: string | null
+          horario?: string | null
+          localizacao?: string | null
+          nome_empresa?: string | null
+          o_que_vende?: string | null
+          organizacao_id?: string
+          outras_informacoes?: string | null
+          politica_entrega?: string | null
+          publico_alvo?: string | null
+          zonas_entrega?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_negocio_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: true
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_numeros_teste: {
+        Row: {
+          id: string
+          nome: string | null
+          organizacao_id: string
+          telefone: string
+        }
+        Insert: {
+          id?: string
+          nome?: string | null
+          organizacao_id: string
+          telefone: string
+        }
+        Update: {
+          id?: string
+          nome?: string | null
+          organizacao_id?: string
+          telefone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_numeros_teste_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_passar_humano: {
+        Row: {
+          ativo: boolean
+          gatilho: string
+          id: string
+          organizacao_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          gatilho: string
+          id?: string
+          organizacao_id: string
+        }
+        Update: {
+          ativo?: boolean
+          gatilho?: string
+          id?: string
+          organizacao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_passar_humano_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_produtos: {
+        Row: {
+          ativo: boolean
+          categoria: string | null
+          criado_em: string
+          descricao: string | null
+          id: string
+          link: string | null
+          nome: string
+          ordem: number
+          organizacao_id: string
+          preco_texto: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string | null
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          link?: string | null
+          nome: string
+          ordem?: number
+          organizacao_id: string
+          preco_texto?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string | null
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          link?: string | null
+          nome?: string
+          ordem?: number
+          organizacao_id?: string
+          preco_texto?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_produtos_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_regras: {
+        Row: {
+          ativo: boolean
+          criado_em: string
+          id: string
+          ordem: number
+          organizacao_id: string
+          texto: string
+          tipo: string
+        }
+        Insert: {
+          ativo?: boolean
+          criado_em?: string
+          id?: string
+          ordem?: number
+          organizacao_id: string
+          texto: string
+          tipo: string
+        }
+        Update: {
+          ativo?: boolean
+          criado_em?: string
+          id?: string
+          ordem?: number
+          organizacao_id?: string
+          texto?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_regras_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mensagens: {
         Row: {
           conversa_id: string
           criado_em: string
           id: string
+          id_externo: string | null
           organizacao_id: string
           remetente: Database["public"]["Enums"]["remetente_msg"]
           texto: string
+          tipo: string
         }
         Insert: {
           conversa_id: string
           criado_em?: string
           id?: string
+          id_externo?: string | null
           organizacao_id: string
           remetente: Database["public"]["Enums"]["remetente_msg"]
           texto: string
+          tipo?: string
         }
         Update: {
           conversa_id?: string
           criado_em?: string
           id?: string
+          id_externo?: string | null
           organizacao_id?: string
           remetente?: Database["public"]["Enums"]["remetente_msg"]
           texto?: string
+          tipo?: string
         }
         Relationships: [
           {
@@ -326,6 +836,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      executar_jev: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -333,7 +844,9 @@ export type Database = {
         }
         Returns: boolean
       }
+      kb_semear: { Args: { p_org: string }; Returns: undefined }
       minha_organizacao: { Args: never; Returns: string }
+      sou_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "atendente"
