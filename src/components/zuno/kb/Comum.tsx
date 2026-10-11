@@ -9,7 +9,7 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export function Campo({ label, ajuda, children }: { label: string; ajuda?: string; children: ReactNode }) {
+export function Campo({ label, ajuda, children }: { label: string; ajuda?: string | undefined; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label>{label}</Label>
@@ -20,8 +20,8 @@ export function Campo({ label, ajuda, children }: { label: string; ajuda?: strin
 }
 
 export function CampoTexto({ label, valor, onChange, longo, disabled, placeholder, ajuda, tipo }: {
-  label: string; valor: string | number | null | undefined; onChange: (v: string) => void; longo?: boolean;
-  disabled?: boolean; placeholder?: string; ajuda?: string; tipo?: string;
+  label: string; valor: string | number | null | undefined; onChange: (v: string) => void; longo?: boolean | undefined;
+  disabled?: boolean | undefined; placeholder?: string | undefined; ajuda?: string | undefined; tipo?: string | undefined;
 }) {
   return (
     <Campo label={label} ajuda={ajuda}>
