@@ -33,10 +33,10 @@ function Janela({ aberta, onClose, titulo, children, onGuardar, aGuardar }: {
 function useEdicao(tabela: string) {
   const [ed, setEd] = useState<Linha | null>(null);
   const guardar = useKbGuardar(tabela);
-  const set = (k: string) => (v: unknown) => setEd((x) => ({ ...(x ?? {}), [k]: v }));
+  const set = (k: string) => (v: unknown) => setEd((x: Linha) => ({ ...(x ?? {}), [k]: v }));
   const gravar = (obrig: string[]) => {
     if (!ed) return;
-    for (const k of obrig) if (!String(ed[k] ?? "").trim()) return toast.error("Preenche os campos obrigatórios.");
+    for (const k of obrig) if (!String(ed[k] ?? "").trim()) { toast.error("Preenche os campos obrigatórios."); return; }
     guardar.mutate(ed, { onSuccess: () => setEd(null) });
   };
   return { ed, setEd, set, gravar, guardar };
@@ -254,7 +254,7 @@ function CartaoJogada({ jogada, titulo, explicacao, inicial, admin }: { jogada: 
     const { data: p } = await db.from("perfis").select("organizacao_id").eq("id", u.user?.id).single();
     const { error } = await db.from("kb_estrategia").upsert({ organizacao_id: p?.organizacao_id, jogada, instrucoes: txt }, { onConflict: "organizacao_id,jogada" });
     setAGuardar(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["kb", "kb_estrategia"] });
     toast.success(`Estratégia "${titulo}" guardada.`);
   }
@@ -307,7 +307,7 @@ export function TabTestes({ admin }: { admin: boolean }) {
   const [nome, setNome] = useState("");
   function adicionar() {
     const t = tel.trim();
-    if (!/^\d{9,15}$/.test(t)) return toast.error("Usa só dígitos com o indicativo, ex.: 244923456789");
+    if (!/^\d{9,15}$/.test(t)) { toast.error("Usa só dígitos com o indicativo, ex.: 244923456789"); return; }
     guardar.mutate({ telefone: t, nome: nome.trim() || null }, { onSuccess: () => { setTel(""); setNome(""); } });
   }
   if (q.isLoading) return <Carregando />;

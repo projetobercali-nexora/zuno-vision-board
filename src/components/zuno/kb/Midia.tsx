@@ -38,11 +38,11 @@ export function TabMidia({ admin }: { admin: boolean }) {
   const [ficheiro, setFicheiro] = useState<File | null>(null);
   const [aCarregar, setACarregar] = useState(false);
   const inp = useRef<HTMLInputElement>(null);
-  const set = (k: string) => (v: unknown) => setEd((x) => ({ ...(x ?? {}), [k]: v }));
+  const set = (k: string) => (v: unknown) => setEd((x: Linha) => ({ ...(x ?? {}), [k]: v }));
 
   function escolher(f: File | null) {
-    if (f && ed && f.size > LIMITE[ed.tipo]) {
-      toast.error(`O ficheiro tem ${(f.size / MB).toFixed(1)} MB. O limite para ${ed.tipo} é ${LIMITE[ed.tipo] / MB} MB.`);
+    if (f && ed && f.size > (LIMITE[ed.tipo] ?? 0)) {
+      toast.error(`O ficheiro tem ${(f.size / MB).toFixed(1)} MB. O limite para ${ed.tipo} é ${(LIMITE[ed.tipo] ?? 0) / MB} MB.`);
       if (inp.current) inp.current.value = "";
       return setFicheiro(null);
     }
@@ -51,13 +51,13 @@ export function TabMidia({ admin }: { admin: boolean }) {
 
   async function gravar() {
     if (!ed) return;
-    if (!ed.titulo?.trim()) return toast.error("Indica um título.");
+    if (!ed.titulo?.trim()) { toast.error("Indica um título."); return; }
     const linha = { ...ed };
     delete linha.produto_nome;
     if (linha.produto_id === "nenhum") linha.produto_id = null;
     try {
       if (ed.tipo === "link") {
-        if (!/^https?:\/\//.test(ed.url ?? "")) return toast.error("Indica um URL válido (https://...).");
+        if (!/^https?:\/\//.test(ed.url ?? "")) { toast.error("Indica um URL válido (https://...)."); return; }
       } else if (ficheiro) {
         setACarregar(true);
         const nome = ficheiro.name.replace(/[^\w.-]+/g, "_");
@@ -68,7 +68,7 @@ export function TabMidia({ admin }: { admin: boolean }) {
         linha.caminho_storage = caminho;
         linha.url = db.storage.from(BUCKET).getPublicUrl(caminho).data.publicUrl;
       } else if (!ed.id) {
-        return toast.error("Escolhe um ficheiro para carregar.");
+        { toast.error("Escolhe um ficheiro para carregar."); return; }
       }
       guardar.mutate(linha, { onSuccess: () => { setEd(null); setFicheiro(null); } });
     } catch (e) {

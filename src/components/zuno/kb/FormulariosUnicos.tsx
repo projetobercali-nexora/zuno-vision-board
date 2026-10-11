@@ -36,7 +36,7 @@ function useForm(tabela: string) {
   const q = useKbUnica(tabela);
   const [f, setF] = useState<Linha>({});
   useEffect(() => { if (q.data) setF(q.data); }, [q.data]);
-  const set = (k: string) => (v: unknown) => setF((x) => ({ ...x, [k]: v }));
+  const set = (k: string) => (v: unknown) => setF((x: Linha) => ({ ...x, [k]: v }));
   return { q, f, set };
 }
 
@@ -123,7 +123,7 @@ export function TabAgente({ admin }: { admin: boolean }) {
 
       {admin && (
         <Button onClick={() => {
-          if (Number(f.pausa_min_seg) > Number(f.pausa_max_seg)) return toast.error("A pausa mínima não pode ser maior que a máxima.");
+          if (Number(f.pausa_min_seg) > Number(f.pausa_max_seg)) { toast.error("A pausa mínima não pode ser maior que a máxima."); return; }
           guardar.mutate(f);
         }} disabled={guardar.isPending}>
           <Save className="h-4 w-4" /> {guardar.isPending ? "A guardar..." : "Guardar agente"}
