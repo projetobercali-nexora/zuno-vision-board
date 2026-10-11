@@ -7,7 +7,7 @@ import { useOrg } from "@/lib/zuno";
 export const db = supabase as unknown as { from: (t: string) => any; storage: typeof supabase.storage };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Linha = Record<string, any>;
+export type Linha = any;
 
 export function useAdmin() {
   return useQuery({
