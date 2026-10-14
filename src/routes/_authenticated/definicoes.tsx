@@ -26,7 +26,7 @@ const SECCOES: Record<Seccao, string> = {
 
 export const Route = createFileRoute("/_authenticated/definicoes")({
   validateSearch: (s: Record<string, unknown>): { s?: Seccao } =>
-    typeof s.s === "string" && s.s in SECCOES ? { s: s.s as Seccao } : {},
+    typeof s["s"] === "string" && s["s"] in SECCOES ? { s: s["s"] as Seccao } : {},
   head: () => ({ meta: [{ title: "Definições — Zuno" }, { name: "description", content: "Definições do agente e do negócio no Zuno." }] }),
   component: DefinicoesPage,
 });
@@ -88,7 +88,7 @@ function Painel({ admin }: { admin: boolean }) {
     navigate({ to: "/auth", replace: true });
   }
 
-  const n = (q: { isLoading: boolean; data?: Linha[] }, um: string, varios: string) => {
+  const n = (q: { isLoading: boolean; data?: Linha[] | undefined }, um: string, varios: string) => {
     if (q.isLoading) return "…";
     const c = ativos(q.data);
     return `${c} ${c === 1 ? um : varios}`;
