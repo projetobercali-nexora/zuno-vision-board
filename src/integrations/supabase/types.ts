@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      agente_fila: {
+        Row: {
+          conversa_id: string
+          criado_em: string
+          id: number
+          organizacao_id: string
+          processado: boolean
+        }
+        Insert: {
+          conversa_id: string
+          criado_em?: string
+          id?: number
+          organizacao_id: string
+          processado?: boolean
+        }
+        Update: {
+          conversa_id?: string
+          criado_em?: string
+          id?: number
+          organizacao_id?: string
+          processado?: boolean
+        }
+        Relationships: []
+      }
       config_jev: {
         Row: {
           ativo: boolean
@@ -691,6 +715,33 @@ export type Database = {
           },
         ]
       }
+      leitura_fila: {
+        Row: {
+          conversa_id: string
+          criado_em: string
+          id: number
+          id_externo: string
+          organizacao_id: string
+          processado: boolean
+        }
+        Insert: {
+          conversa_id: string
+          criado_em?: string
+          id?: number
+          id_externo: string
+          organizacao_id: string
+          processado?: boolean
+        }
+        Update: {
+          conversa_id?: string
+          criado_em?: string
+          id?: number
+          id_externo?: string
+          organizacao_id?: string
+          processado?: boolean
+        }
+        Relationships: []
+      }
       mensagens: {
         Row: {
           conversa_id: string
@@ -836,7 +887,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      executar_agente: { Args: never; Returns: undefined }
       executar_jev: { Args: never; Returns: undefined }
+      executar_leitura: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -844,6 +897,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      kb_contexto_agente: { Args: { p_org: string }; Returns: string }
+      kb_contexto_jev: { Args: { p_org: string }; Returns: string }
       kb_semear: { Args: { p_org: string }; Returns: undefined }
       minha_organizacao: { Args: never; Returns: string }
       sou_admin: { Args: never; Returns: boolean }
