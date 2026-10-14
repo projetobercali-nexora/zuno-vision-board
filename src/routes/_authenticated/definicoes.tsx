@@ -1,156 +1,231 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Circle, Database } from "lucide-react";
-import { toast } from "sonner";
+import { useState, type ReactNode } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  ArrowLeft, BarChart3, Bell, Bot, Building2, CalendarClock, CheckCircle2, ChevronRight, Circle, ClipboardList,
+  Clock, Gauge, HelpCircle, Image, LogOut, MessageSquareHeart, Mic, Package, PackageMinus, PackagePlus, Repeat,
+  Search, Shield, ShieldCheck, Star, Target, Timer, Truck, UserRound, Users, AlertTriangle, ListOrdered, Handshake, FileText,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useOrg, useEstagios } from "@/lib/zuno";
-import { useAdmin, useKbLista, useKbUnica } from "@/lib/kb";
+import { useOrg } from "@/lib/zuno";
+import { useAdmin, useKbLista, useKbUnica, type Linha } from "@/lib/kb";
 import { Carregando, Erro, Cabecalho } from "@/components/zuno/Estados";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TabAgente, TabNegocio } from "@/components/zuno/kb/FormulariosUnicos";
-import { TabEstrategia, TabPassarHumano, TabPerguntas, TabProdutos, TabRegras, TabTestes } from "@/components/zuno/kb/Listas";
+import { InterruptorAgente, TabIdentidade, TabNegocio, TabTom } from "@/components/zuno/kb/FormulariosUnicos";
+import { TabEstrategia, TabPassarHumano, TabPerguntas, TabProdutos, TabRegras } from "@/components/zuno/kb/Listas";
 import { TabMidia } from "@/components/zuno/kb/Midia";
 
+type Seccao = "identidade" | "tom" | "regras" | "humano" | "estrategia" | "negocio" | "perguntas" | "midia" | "produtos";
+const SECCOES: Record<Seccao, string> = {
+  identidade: "Identidade", tom: "Tom de voz", regras: "Regras", humano: "Passar a humano", estrategia: "Estratégia",
+  negocio: "Perfil do negócio", perguntas: "Perguntas frequentes", midia: "Mídia", produtos: "Produtos e serviços",
+};
+
 export const Route = createFileRoute("/_authenticated/definicoes")({
-  head: () => ({ meta: [{ title: "Definições — Zuno" }, { name: "description", content: "Definições do Zuno." }] }),
+  validateSearch: (s: Record<string, unknown>): { s?: Seccao } =>
+    typeof s["s"] === "string" && s["s"] in SECCOES ? { s: s["s"] as Seccao } : {},
+  head: () => ({ meta: [{ title: "Definições — Zuno" }, { name: "description", content: "Definições do agente e do negócio no Zuno." }] }),
   component: DefinicoesPage,
 });
 
-type Rem = "cliente" | "agente" | "humano";
-const FICTICIOS: { nome: string; telefone: string; etiquetas: string[]; origem: string; estagio: number; msgs: [Rem, string][]; jev: { progresso: number; jogada: "perguntar" | "qualificar" | "apresentar" | "objecao" | "fechar"; motivo: string } }[] = [
-  { nome: "Ana Domingos", telefone: "+244 923 111 222", etiquetas: ["VIP"], origem: "Instagram", estagio: 0,
-    msgs: [["cliente", "Boa tarde, vi o vosso anúncio. Ainda têm disponível?"], ["agente", "Boa tarde, Ana! Temos sim 😊 Para que zona de Luanda seria a entrega?"]],
-    jev: { progresso: 15, jogada: "perguntar", motivo: "Primeiro contacto: descobrir localização e necessidade." } },
-  { nome: "Carlos Mendes", telefone: "+244 912 333 444", etiquetas: ["Revenda"], origem: "Indicação", estagio: 1,
-    msgs: [["cliente", "Quero comprar em quantidade para revender."], ["agente", "Excelente! Quantas unidades pensa encomendar por mês?"], ["cliente", "Umas 50."]],
-    jev: { progresso: 35, jogada: "qualificar", motivo: "Cliente revendedor com volume interessante; confirmar orçamento." } },
-  { nome: "Luísa Neto", telefone: "+244 934 555 666", etiquetas: ["Talatona"], origem: "Facebook", estagio: 2,
-    msgs: [["cliente", "Qual é o preço do pacote completo?"], ["agente", "O pacote completo fica em 45.000 Kz, com entrega incluída."], ["humano", "Luísa, enviei-lhe a proposta detalhada por aqui."]],
-    jev: { progresso: 60, jogada: "apresentar", motivo: "Já pediu preço; apresentar benefícios do pacote." } },
-  { nome: "Pedro Kiala", telefone: "+244 945 777 888", etiquetas: ["Urgente"], origem: "Site", estagio: 3,
-    msgs: [["cliente", "Está um bocado caro. Fazem desconto?"], ["agente", "Compreendo, Pedro. Para pagamento hoje conseguimos 10% de desconto."]],
-    jev: { progresso: 80, jogada: "objecao", motivo: "Objeção de preço; oferecer condição especial com prazo." } },
-  { nome: "Marta Sebastião", telefone: "+244 956 999 000", etiquetas: ["VIP", "Recorrente"], origem: "WhatsApp", estagio: 4,
-    msgs: [["cliente", "Já fiz a transferência!"], ["agente", "Recebido, Marta! A sua encomenda sai amanhã de manhã. Obrigado pela confiança 🙏"]],
-    jev: { progresso: 100, jogada: "fechar", motivo: "Pagamento confirmado; venda fechada." } },
-];
+const ativos = (l?: Linha[]) => (l ?? []).filter((x) => x.ativo).length;
 
 function DefinicoesPage() {
-  const qc = useQueryClient();
+  const { s } = Route.useSearch();
   const org = useOrg();
-  const estagios = useEstagios();
   const admin = useAdmin();
-
-  const gerar = useMutation({
-    mutationFn: async () => {
-      const oid = org.data!.organizacaoId;
-      const est = estagios.data ?? [];
-      for (const f of FICTICIOS) {
-        const { data: c, error: e1 } = await supabase.from("contactos").insert({ organizacao_id: oid, nome: f.nome, telefone: f.telefone, etiquetas: f.etiquetas, origem: f.origem }).select().single();
-        if (e1) throw e1;
-        const base = Date.now() - Math.random() * 3600_000 * 6;
-        const ultima = new Date(base + f.msgs.length * 60_000).toISOString();
-        const { data: conv, error: e2 } = await supabase.from("conversas").insert({ organizacao_id: oid, contacto_id: c.id, estagio_id: est[f.estagio]?.id ?? null, ultima_mensagem_em: ultima, estado: f.estagio === 4 ? "fechada" : "aberta" }).select().single();
-        if (e2) throw e2;
-        const { error: e3 } = await supabase.from("mensagens").insert(f.msgs.map(([remetente, texto], i) => ({ organizacao_id: oid, conversa_id: conv.id, remetente, texto, criado_em: new Date(base + i * 60_000).toISOString() })));
-        if (e3) throw e3;
-        const { error: e4 } = await supabase.from("decisoes_jev").insert({ organizacao_id: oid, conversa_id: conv.id, estagio: est[f.estagio]?.nome ?? null, ...f.jev });
-        if (e4) throw e4;
-      }
-    },
-    onSuccess: () => { qc.invalidateQueries(); toast.success("Dados de teste gerados! Veja as Conversas."); },
-    onError: (e) => toast.error(e.message),
-  });
-
-  if (org.isLoading) return <Carregando />;
+  if (org.isLoading || admin.isLoading) return <Carregando />;
   if (org.error) return <Erro erro={org.error} />;
   const ad = !!admin.data;
+  if (s) return <PaginaSeccao s={s} admin={ad} />;
+  return <Painel admin={ad} />;
+}
 
+function PaginaSeccao({ s, admin }: { s: Seccao; admin: boolean }) {
+  const corpo: Record<Seccao, ReactNode> = {
+    identidade: <TabIdentidade admin={admin} />, tom: <TabTom admin={admin} />, regras: <TabRegras admin={admin} />,
+    humano: <TabPassarHumano admin={admin} />, estrategia: <TabEstrategia admin={admin} />, negocio: <TabNegocio admin={admin} />,
+    perguntas: <TabPerguntas admin={admin} />, midia: <TabMidia admin={admin} />, produtos: <TabProdutos admin={admin} />,
+  };
   return (
     <div className="flex h-full flex-col">
-      <Cabecalho titulo="Definições" />
-      <Tabs defaultValue="geral" className="flex min-h-0 flex-1 flex-col">
-        <div className="overflow-x-auto border-b px-2">
-          <TabsList className="h-11 w-max bg-transparent">
-            {SEPARADORES.map(([v, l]) => (
-              <TabsTrigger key={v} value={v} className="data-[state=active]:bg-secondary data-[state=active]:text-primary">{l}</TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-4xl p-4 pb-10">
-            <TabsContent value="geral" className="mt-0 space-y-4">
-              <Prontidao />
-              <div className="rounded-2xl border bg-card p-5">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Organização</p>
-                <p className="mt-1 font-display text-xl font-semibold">{org.data?.organizacaoNome}</p>
-                <p className="mt-3 text-sm text-muted-foreground">{org.data?.nome} · {org.data?.email}</p>
-              </div>
-              <div className="rounded-2xl border bg-card p-5">
-                <p className="font-display font-semibold">Dados de teste</p>
-                <p className="mt-1 text-sm text-muted-foreground">Cria 5 contactos fictícios com conversas, mensagens e decisões do Jev para ver o Zuno a funcionar.</p>
-                <Button className="mt-4" onClick={() => gerar.mutate()} disabled={gerar.isPending || !estagios.data}>
-                  <Database className="h-4 w-4" /> {gerar.isPending ? "A gerar..." : "Gerar dados de teste"}
-                </Button>
-              </div>
-            </TabsContent>
-            <TabsContent value="agente" className="mt-0"><TabAgente admin={ad} /></TabsContent>
-            <TabsContent value="negocio" className="mt-0"><TabNegocio admin={ad} /></TabsContent>
-            <TabsContent value="produtos" className="mt-0"><TabProdutos admin={ad} /></TabsContent>
-            <TabsContent value="perguntas" className="mt-0"><TabPerguntas admin={ad} /></TabsContent>
-            <TabsContent value="regras" className="mt-0"><TabRegras admin={ad} /></TabsContent>
-            <TabsContent value="midia" className="mt-0"><TabMidia admin={ad} /></TabsContent>
-            <TabsContent value="estrategia" className="mt-0"><TabEstrategia admin={ad} /></TabsContent>
-            <TabsContent value="humano" className="mt-0"><TabPassarHumano admin={ad} /></TabsContent>
-            <TabsContent value="testes" className="mt-0"><TabTestes admin={ad} /></TabsContent>
-          </div>
-        </div>
-      </Tabs>
+      <div className="flex items-center gap-2 border-b px-2 py-2 md:px-4">
+        <Button asChild variant="ghost" size="sm"><Link to="/definicoes" search={{}}><ArrowLeft className="h-4 w-4" /> Definições</Link></Button>
+        <h1 className="font-display text-lg font-semibold">{SECCOES[s]}</h1>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-4xl p-4 pb-0">{corpo[s]}<div className="h-10" /></div>
+      </div>
     </div>
   );
 }
 
-const SEPARADORES: [string, string][] = [
-  ["geral", "Geral"], ["agente", "Agente"], ["negocio", "Negócio"], ["produtos", "Produtos"], ["perguntas", "Perguntas"],
-  ["regras", "Regras"], ["midia", "Mídia"], ["estrategia", "Estratégia"], ["humano", "Passar a humano"], ["testes", "Testes"],
-];
+type CartaoDef = { titulo: string; texto: string; icone: typeof Bot; estado?: ReactNode; s?: Seccao; extra?: ReactNode };
 
-function Prontidao() {
+function Painel({ admin }: { admin: boolean }) {
+  const org = useOrg();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const [busca, setBusca] = useState("");
   const ag = useKbUnica("kb_agente");
   const ng = useKbUnica("kb_negocio");
   const pr = useKbLista("kb_produtos", "ordem");
   const fq = useKbLista("kb_faq");
   const md = useKbLista("kb_midias");
-  const nt = useKbLista("kb_numeros_teste", "telefone");
-  if ([ag, ng, pr, fq, md, nt].some((q) => q.isLoading)) return <Carregando texto="A verificar prontidão..." />;
-  const cheio = (v: unknown) => !!String(v ?? "").trim();
-  const itens: [string, boolean][] = [
-    ["Identidade preenchida (nome e apresentação)", cheio(ag.data?.nome) && cheio(ag.data?.apresentacao)],
-    ["Perfil do negócio (descrição e o que vende)", cheio(ng.data?.descricao) && cheio(ng.data?.o_que_vende)],
-    ["Pelo menos 1 produto", (pr.data?.length ?? 0) >= 1],
-    ["Pelo menos 3 perguntas frequentes", (fq.data?.length ?? 0) >= 3],
-    ["Pelo menos 1 mídia", (md.data?.length ?? 0) >= 1],
-    ["Pelo menos 1 número de teste", (nt.data?.length ?? 0) >= 1],
+  const rg = useKbLista("kb_regras", "ordem");
+  const ph = useKbLista("kb_passar_humano", "gatilho");
+  const qs = [ag, ng, pr, fq, md, rg, ph];
+  const erro = qs.find((q) => q.error)?.error;
+  const carregando = qs.some((q) => q.isLoading);
+
+  async function sair() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
+
+  const n = (q: { isLoading: boolean; data?: Linha[] | undefined }, um: string, varios: string) => {
+    if (q.isLoading) return "…";
+    const c = ativos(q.data);
+    return `${c} ${c === 1 ? um : varios}`;
+  };
+  const ligado = ag.data?.modo === "ligado";
+
+  const grupos: { titulo: string; texto: string; cartoes: CartaoDef[] }[] = [
+    { titulo: "Agente IA", texto: "Como o agente se comporta e fala com os clientes.", cartoes: [
+      { titulo: "Estado do agente", texto: "Liga ou desliga as respostas automáticas.", icone: Bot,
+        estado: <Badge variant={ligado ? "default" : "secondary"}>{ligado ? "Ligado" : "Desligado"}</Badge>, extra: <InterruptorAgente admin={admin} /> },
+      { titulo: "Identidade", texto: "Nome, apresentação, saudação e despedida.", icone: UserRound, s: "identidade", estado: ag.data?.nome || "Sem nome" },
+      { titulo: "Tom de voz", texto: "Tom, emojis, tamanho e pausas das respostas.", icone: Mic, s: "tom" },
+      { titulo: "Regras", texto: "O que o agente deve e não deve fazer.", icone: ShieldCheck, s: "regras", estado: n(rg, "ativa", "ativas") },
+      { titulo: "Passar a humano", texto: "Situações em que a conversa passa a um colega.", icone: Handshake, s: "humano", estado: n(ph, "ativa", "ativas") },
+      { titulo: "Estratégia", texto: "As jogadas do Jev em cada fase da venda.", icone: Target, s: "estrategia", estado: "5 jogadas" },
+    ] },
+    { titulo: "Negócio", texto: "O que o agente sabe sobre a tua empresa.", cartoes: [
+      { titulo: "Perfil do negócio", texto: "Descrição, entregas, pagamentos e contactos.", icone: Building2, s: "negocio" },
+      { titulo: "Perguntas frequentes", texto: "Respostas prontas às dúvidas comuns.", icone: HelpCircle, s: "perguntas", estado: n(fq, "ativa", "ativas") },
+      { titulo: "Mídia", texto: "Fotos, vídeos e documentos para enviar.", icone: Image, s: "midia", estado: n(md, "ficheiro", "ficheiros") },
+      { titulo: "Horário de atendimento", texto: "Quando o agente e a equipa respondem.", icone: Clock },
+    ] },
+    { titulo: "Catálogo e stock", texto: "Produtos, quantidades e reposições.", cartoes: [
+      { titulo: "Produtos e serviços", texto: "O que vendes, com preços e categorias.", icone: Package, s: "produtos", estado: n(pr, "ativo", "ativos") },
+      { titulo: "Entradas", texto: "Registo de mercadoria recebida.", icone: PackagePlus },
+      { titulo: "Saídas", texto: "Registo de mercadoria vendida.", icone: PackageMinus },
+      { titulo: "Alerta de stock baixo", texto: "Aviso quando um produto está a acabar.", icone: AlertTriangle },
+      { titulo: "Lista de espera", texto: "Clientes à espera de reposição.", icone: ListOrdered },
+    ] },
+    { titulo: "Equipa", texto: "Quem trabalha contigo no Zuno.", cartoes: [
+      { titulo: "Funcionários", texto: "Pessoas com acesso ao painel.", icone: Users },
+      { titulo: "Funções", texto: "Atendente, vendedor, gestor.", icone: ClipboardList },
+      { titulo: "Disponibilidade", texto: "Quem está disponível para atender.", icone: CalendarClock },
+      { titulo: "Permissões", texto: "O que cada pessoa pode ver e mudar.", icone: Shield },
+      { titulo: "Metas", texto: "Objetivos de vendas da equipa.", icone: Gauge },
+    ] },
+    { titulo: "Automações", texto: "Mensagens enviadas automaticamente.", cartoes: [
+      { titulo: "Follow-up", texto: "Voltar a contactar quem não respondeu.", icone: Repeat },
+      { titulo: "Lembretes", texto: "Avisos de pagamentos e encontros.", icone: Bell },
+      { titulo: "Confirmação de entrega", texto: "Confirmar que a encomenda chegou.", icone: Truck },
+      { titulo: "Avaliação de 1 a 5", texto: "Pedir ao cliente uma nota.", icone: Star },
+      { titulo: "Relatório ao cliente", texto: "Resumo da compra enviado ao cliente.", icone: FileText },
+    ] },
+    { titulo: "Relatórios e conta", texto: "Desempenho e dados da tua conta.", cartoes: [
+      { titulo: "Organização", texto: `${org.data?.organizacaoNome ?? ""} · ${org.data?.email ?? ""}`, icone: Building2, estado: admin ? "Administrador" : "Atendente" },
+      { titulo: "Relatórios de vendas", texto: "Vendas por período e produto.", icone: BarChart3 },
+      { titulo: "Tempo de resposta", texto: "Quanto demora a primeira resposta.", icone: Timer },
+      { titulo: "Entregas", texto: "Estado das entregas.", icone: Truck },
+      { titulo: "Notas dos clientes", texto: "Média das avaliações recebidas.", icone: MessageSquareHeart },
+      { titulo: "Notificações", texto: "Como e quando recebes avisos.", icone: Bell },
+    ] },
   ];
-  const feitos = itens.filter(([, ok]) => ok).length;
-  const pct = Math.round((feitos / itens.length) * 100);
+
+  const t = busca.trim().toLowerCase();
+  const filtrados = grupos
+    .map((g) => ({ ...g, cartoes: t ? g.cartoes.filter((c) => `${c.titulo} ${c.texto} ${g.titulo}`.toLowerCase().includes(t)) : g.cartoes }))
+    .filter((g) => g.cartoes.length);
+
+  const prontidao: [string, boolean, Seccao][] = [
+    ["Identidade preenchida", !!String(ag.data?.nome ?? "").trim() && !!String(ag.data?.apresentacao ?? "").trim(), "identidade"],
+    ["Perfil do negócio preenchido", !!String(ng.data?.descricao ?? "").trim() && !!String(ng.data?.o_que_vende ?? "").trim(), "negocio"],
+    ["Pelo menos 1 produto ativo", ativos(pr.data) >= 1, "produtos"],
+    ["Pelo menos 3 perguntas ativas", ativos(fq.data) >= 3, "perguntas"],
+    ["Pelo menos 1 mídia ativa", ativos(md.data) >= 1, "midia"],
+  ];
+  const pct = Math.round((prontidao.filter(([, ok]) => ok).length / prontidao.length) * 100);
+
   return (
-    <div className="rounded-2xl border border-primary/30 bg-card p-5 shadow-glow">
-      <div className="flex items-center justify-between">
-        <p className="font-display font-semibold">Prontidão do agente</p>
-        <span className="font-display text-lg font-bold text-primary">{pct}%</span>
+    <div className="flex h-full flex-col">
+      <Cabecalho titulo="Definições" />
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-4xl space-y-6 p-4 pb-10">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input className="pl-9" placeholder="Pesquisar definições" value={busca} onChange={(e) => setBusca(e.target.value)} />
+          </div>
+
+          {erro ? <Erro erro={erro} /> : carregando ? <Carregando texto="A verificar prontidão..." /> : (
+            <div className="rounded-2xl border border-primary/30 bg-card p-4 shadow-glow">
+              <div className="flex items-center justify-between">
+                <p className="font-display text-sm font-semibold">Prontidão do agente</p>
+                <span className="font-display font-bold text-primary">{pct}%</span>
+              </div>
+              <Progress value={pct} className="mt-2 h-1.5" />
+              <ul className="mt-3 grid gap-1 sm:grid-cols-2">
+                {prontidao.map(([txt, ok, sec]) => (
+                  <li key={txt}>
+                    <Link to="/definicoes" search={{ s: sec }} className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm hover:bg-secondary">
+                      {ok ? <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" /> : <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                      <span className={ok ? "" : "text-muted-foreground"}>{txt}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {filtrados.length === 0 && <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">Nenhuma definição encontrada.</p>}
+
+          {filtrados.map((g) => (
+            <section key={g.titulo} className="space-y-3">
+              <div>
+                <h2 className="font-display text-base font-semibold">{g.titulo}</h2>
+                <p className="text-sm text-muted-foreground">{g.texto}</p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {g.cartoes.map((c) => <CartaoDefinicao key={c.titulo} c={c} />)}
+              </div>
+              {g.titulo === "Relatórios e conta" && (
+                <Button variant="outline" onClick={sair} className="w-full md:w-auto"><LogOut className="h-4 w-4" /> Sair</Button>
+              )}
+            </section>
+          ))}
+        </div>
       </div>
-      <Progress value={pct} className="mt-3" />
-      <ul className="mt-4 space-y-2">
-        {itens.map(([t, ok]) => (
-          <li key={t} className="flex items-center gap-2 text-sm">
-            {ok ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
-            <span className={ok ? "" : "text-muted-foreground"}>{t}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
+}
+
+function CartaoDefinicao({ c }: { c: CartaoDef }) {
+  const breve = !c.s && !c.extra && c.titulo !== "Organização";
+  const Icone = c.icone;
+  const dentro = (
+    <>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icone className="h-5 w-5" /></div>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="font-medium">{c.titulo}</p>
+          {breve ? <Badge variant="outline">Em breve</Badge> : typeof c.estado === "string" ? <Badge variant="secondary" className="max-w-[10rem] truncate">{c.estado}</Badge> : c.estado}
+        </div>
+        <p className="truncate text-sm text-muted-foreground">{c.texto}</p>
+      </div>
+      {c.extra}
+      {c.s && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+    </>
+  );
+  const cls = "flex items-center gap-3 rounded-2xl border bg-card p-4 text-left";
+  if (c.s) return <Link to="/definicoes" search={{ s: c.s }} className={`${cls} transition-colors hover:border-primary/50`}>{dentro}</Link>;
+  return <div className={`${cls} ${breve ? "pointer-events-none opacity-50" : ""}`} aria-disabled={breve}>{dentro}</div>;
 }
