@@ -38,6 +38,35 @@ export type Database = {
         }
         Relationships: []
       }
+      config_atendimento: {
+        Row: {
+          fuso: string
+          instrucao_fora: string
+          organizacao_id: string
+          usar_horario: boolean
+        }
+        Insert: {
+          fuso?: string
+          instrucao_fora?: string
+          organizacao_id: string
+          usar_horario?: boolean
+        }
+        Update: {
+          fuso?: string
+          instrucao_fora?: string
+          organizacao_id?: string
+          usar_horario?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_atendimento_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: true
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_jev: {
         Row: {
           ativo: boolean
@@ -58,6 +87,50 @@ export type Database = {
           modelo?: string
         }
         Relationships: []
+      }
+      config_lembretes: {
+        Row: {
+          brinde_ativo: boolean
+          espera_ativo: boolean
+          espera_minutos: number
+          humano_ativo: boolean
+          organizacao_id: string
+          parada_ativo: boolean
+          parada_horas: number
+          quente_ativo: boolean
+          quente_probabilidade: number
+        }
+        Insert: {
+          brinde_ativo?: boolean
+          espera_ativo?: boolean
+          espera_minutos?: number
+          humano_ativo?: boolean
+          organizacao_id: string
+          parada_ativo?: boolean
+          parada_horas?: number
+          quente_ativo?: boolean
+          quente_probabilidade?: number
+        }
+        Update: {
+          brinde_ativo?: boolean
+          espera_ativo?: boolean
+          espera_minutos?: number
+          humano_ativo?: boolean
+          organizacao_id?: string
+          parada_ativo?: boolean
+          parada_horas?: number
+          quente_ativo?: boolean
+          quente_probabilidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_lembretes_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: true
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contactos: {
         Row: {
@@ -103,30 +176,36 @@ export type Database = {
           criado_em: string
           estado: Database["public"]["Enums"]["estado_conversa"]
           estagio_id: string | null
+          fechada_em: string | null
           ia_ativa: boolean
           id: string
           organizacao_id: string
           ultima_mensagem_em: string | null
+          valor_venda: number | null
         }
         Insert: {
           contacto_id: string
           criado_em?: string
           estado?: Database["public"]["Enums"]["estado_conversa"]
           estagio_id?: string | null
+          fechada_em?: string | null
           ia_ativa?: boolean
           id?: string
           organizacao_id: string
           ultima_mensagem_em?: string | null
+          valor_venda?: number | null
         }
         Update: {
           contacto_id?: string
           criado_em?: string
           estado?: Database["public"]["Enums"]["estado_conversa"]
           estagio_id?: string | null
+          fechada_em?: string | null
           ia_ativa?: boolean
           id?: string
           organizacao_id?: string
           ultima_mensagem_em?: string | null
+          valor_venda?: number | null
         }
         Relationships: [
           {
@@ -231,6 +310,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "estagios_funil_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horario_atendimento: {
+        Row: {
+          abre: string
+          ativo: boolean
+          dia_semana: number
+          fecha: string
+          id: string
+          organizacao_id: string
+        }
+        Insert: {
+          abre?: string
+          ativo?: boolean
+          dia_semana: number
+          fecha?: string
+          id?: string
+          organizacao_id: string
+        }
+        Update: {
+          abre?: string
+          ativo?: boolean
+          dia_semana?: number
+          fecha?: string
+          id?: string
+          organizacao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horario_atendimento_organizacao_id_fkey"
             columns: ["organizacao_id"]
             isOneToOne: false
             referencedRelation: "organizacoes"
@@ -742,6 +856,73 @@ export type Database = {
         }
         Relationships: []
       }
+      lembretes: {
+        Row: {
+          chave: string | null
+          contacto_id: string | null
+          conversa_id: string | null
+          criado_em: string
+          estado: string
+          id: string
+          organizacao_id: string
+          resolvido_em: string | null
+          texto: string | null
+          tipo: string
+          titulo: string
+          vence_em: string
+        }
+        Insert: {
+          chave?: string | null
+          contacto_id?: string | null
+          conversa_id?: string | null
+          criado_em?: string
+          estado?: string
+          id?: string
+          organizacao_id: string
+          resolvido_em?: string | null
+          texto?: string | null
+          tipo: string
+          titulo: string
+          vence_em?: string
+        }
+        Update: {
+          chave?: string | null
+          contacto_id?: string | null
+          conversa_id?: string | null
+          criado_em?: string
+          estado?: string
+          id?: string
+          organizacao_id?: string
+          resolvido_em?: string | null
+          texto?: string | null
+          tipo?: string
+          titulo?: string
+          vence_em?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lembretes_contacto_id_fkey"
+            columns: ["contacto_id"]
+            isOneToOne: false
+            referencedRelation: "contactos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lembretes_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "conversas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lembretes_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mensagens: {
         Row: {
           conversa_id: string
@@ -887,9 +1068,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      automacao_semear: { Args: { p_org: string }; Returns: undefined }
       executar_agente: { Args: never; Returns: undefined }
       executar_jev: { Args: never; Returns: undefined }
       executar_leitura: { Args: never; Returns: undefined }
+      gerar_lembretes: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -897,6 +1080,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      horario_texto: { Args: { p_org: string }; Returns: string }
       kb_contexto_agente: { Args: { p_org: string }; Returns: string }
       kb_contexto_jev: { Args: { p_org: string }; Returns: string }
       kb_semear: { Args: { p_org: string }; Returns: undefined }
