@@ -2,6 +2,8 @@ import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/
 import { useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Columns3, Users, Settings, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { SinoLembretes } from "@/components/zuno/Lembretes";
+import { useLembretesTempoReal } from "@/lib/lembretes";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -23,6 +25,7 @@ const itens = [
 function Shell() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  useLembretesTempoReal();
   async function sair() {
     await qc.cancelQueries();
     qc.clear();
@@ -32,7 +35,10 @@ function Shell() {
   return (
     <div className="flex h-dvh flex-col bg-background md:flex-row">
       <aside className="hidden w-56 shrink-0 flex-col border-r bg-sidebar p-4 md:flex">
-        <div className="mb-8 px-2 font-display text-3xl font-extrabold text-brand">Zuno</div>
+        <div className="mb-8 flex items-center justify-between px-2">
+          <span className="font-display text-3xl font-extrabold text-brand">Zuno</span>
+          <SinoLembretes />
+        </div>
         <nav className="flex flex-1 flex-col gap-1">
           {itens.map(({ to, label, icon: Icon }) => (
             <Link key={to} to={to} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent" activeProps={{ className: "bg-sidebar-accent text-primary" }}>

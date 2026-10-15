@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { SinoLembretes } from "@/components/zuno/Lembretes";
 
 export function Carregando({ texto = "A carregar..." }: { texto?: string }) {
   return (
@@ -32,7 +33,10 @@ export function Cabecalho({ titulo, children }: { titulo: string; children?: Rea
         <span className="font-display text-xl font-extrabold text-brand md:hidden">Zuno</span>
         <h1 className="truncate font-display text-lg font-semibold">{titulo}</h1>
       </div>
-      {children}
+      <div className="flex items-center gap-2">
+        {children}
+        <SinoLembretes className="md:hidden" />
+      </div>
     </header>
   );
 }
