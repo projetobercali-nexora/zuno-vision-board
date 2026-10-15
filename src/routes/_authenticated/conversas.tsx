@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/conversas")({
+  validateSearch: (s: Record<string, unknown>): { c?: string } => (typeof s["c"] === "string" ? { c: s["c"] } : {}),
   head: () => ({ meta: [{ title: "Conversas — Zuno" }, { name: "description", content: "As suas conversas no Zuno." }] }),
   component: ConversasPage,
 });
@@ -22,7 +23,9 @@ function ConversasPage() {
   const qc = useQueryClient();
   const conversas = useConversas();
   const { data: estagios } = useEstagios();
-  const [selId, setSelId] = useState<string | null>(null);
+  const { c: cParam } = Route.useSearch();
+  const [selId, setSelId] = useState<string | null>(cParam ?? null);
+  useEffect(() => { if (cParam) setSelId(cParam); }, [cParam]);
 
   useEffect(() => {
     const ch = supabase
