@@ -48,7 +48,7 @@ function Painel({ fechar }: { fechar: () => void }) {
   const [perm, setPerm] = useState(() => typeof Notification !== "undefined" && Notification.permission === "granted" && localStorage.getItem(NOTIF_KEY) === "1");
 
   async function ativarNotif() {
-    if (typeof Notification === "undefined") return toast.error("Este navegador não suporta notificações.");
+    if (typeof Notification === "undefined") { toast.error("Este navegador não suporta notificações."); return; }
     const r = await Notification.requestPermission();
     if (r === "granted") { localStorage.setItem(NOTIF_KEY, "1"); setPerm(true); toast.success("Notificações ativadas."); }
     else toast.error("Permissão recusada no navegador.");
