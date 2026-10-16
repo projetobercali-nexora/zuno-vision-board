@@ -40,7 +40,7 @@ function FunilPage() {
   const mover = useMutation({
     mutationFn: async ({ id, estagio_id }: { id: string; estagio_id: string }) => {
       const p: Record<string, unknown> = { estagio_id };
-      if (estagio_id !== ultimoId) p.fechada_em = null;
+      if (estagio_id !== ultimoId) p["fechada_em"] = null;
       const { error } = await db.from("conversas").update(p).eq("id", id);
       if (error) throw error;
     },
